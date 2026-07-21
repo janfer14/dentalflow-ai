@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dentalflow
+          POSTGRES_PASSWORD: dentalflow_dev_password
+          POSTGRES_DB: dentalflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://dentalflow:dentalflow_dev_password@localhost:5432/dentalflow?schema=public
+      REDIS_URL: redis://localhost:6379
+      NODE_ENV: test
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: ci-refresh-secret
+      JWT_REFRESH_EXPIRES_IN: 7d
+      JWT_PATIENT_ACCESS_SECRET: ci-patient-access-secret
+      JWT_PATIENT_ACCESS_EXPIRES_IN: 30d
+      WHATSAPP_VERIFY_TOKEN: ci-verify-token
+      WHATSAPP_API_VERSION: v21.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        working-directory: apps/backend
+
+      - name: Lint
+        run: npm run lint -w apps/backend
+
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: apps/backend
+
+      - name: Unit tests
+        run: npm test -- --ci
+        working-directory: apps/backend
+
+      - name: E2E tests
+        run: npm run test:e2e
+        working-directory: apps/backend
+
+      - name: Build
+        run: npm run build -w apps/backend
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    env:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api/v1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -w apps/frontend
+
+      - name: Type check
+        run: npx tsc --noEmit
+        working-directory: apps/frontend
+
+      - name: Build
+        run: npm run build -w apps/frontend

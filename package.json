@@ -1,0 +1,32 @@
+{
+  "name": "dentalflow-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DentalFlow AI Enterprise — Sistema Inteligente de Gestión para Consultorios y Clínicas Dentales",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w apps/frontend",
+    "dev:backend": "npm run start:dev -w apps/backend",
+    "build:frontend": "npm run build -w apps/frontend",
+    "build:backend": "npm run build -w apps/backend",
+    "lint": "npm run lint -w apps/frontend && npm run lint -w apps/backend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "prisma:generate": "npm run prisma:generate -w apps/backend",
+    "prisma:migrate": "npm run prisma:migrate -w apps/backend",
+    "prisma:studio": "npm run prisma:studio -w apps/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "allowScripts": {
+    "argon2@0.45.0": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.12.2": true,
+    "prisma@7.8.0": true,
+    "@prisma/engines@7.8.0": true
+  }
+}
