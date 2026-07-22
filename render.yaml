@@ -18,6 +18,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install --include=dev && npm run prisma:generate && npm run build:backend
+    # startCommand entry point is dist/src/main (nest build with no rootDir infers dist/src, not dist)
     startCommand: cd apps/backend && npx prisma migrate deploy && npm run prisma:seed && node dist/src/main
     healthCheckPath: /health
     envVars:
