@@ -50,24 +50,16 @@ services:
         generateValue: true
       - key: WHATSAPP_API_VERSION
         value: v21.0
-      # Left unset on purpose — the app runs in sandbox mode for WhatsApp,
-      # the AI assistant, and Google OAuth until these are filled in from
-      # the Render dashboard (Environment tab). sync: false means Render
-      # won't overwrite whatever value you set there on the next deploy.
-      - key: WHATSAPP_PHONE_NUMBER_ID
-        sync: false
-      - key: WHATSAPP_ACCESS_TOKEN
-        sync: false
-      - key: WHATSAPP_APP_SECRET
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
+      # WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET,
+      # ANTHROPIC_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET are
+      # intentionally not listed here. Render's Blueprint create flow
+      # requires a value for any env var it lists (even with sync: false),
+      # so leaving them out entirely — rather than blank — is what actually
+      # skips the prompt. The app already treats them as absent via `?? ''`
+      # fallbacks and runs in sandbox mode. Add them later from the Render
+      # dashboard's Environment tab once you have real credentials.
       - key: ANTHROPIC_MODEL
         value: claude-opus-4-8
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
       - key: GOOGLE_CALLBACK_URL
         value: https://dentalflow-backend.onrender.com/api/v1/auth/google/callback
 
