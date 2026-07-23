@@ -5,6 +5,10 @@ import {
 } from '@nestjs/common';
 import { BillingService } from './billing.service';
 
+function firstCallArg<T>(mockFn: { mock: { calls: unknown[][] } }): T {
+  return mockFn.mock.calls[0]?.[0] as T;
+}
+
 function buildService() {
   const prisma = {
     invoice: {
@@ -45,11 +49,16 @@ describe('BillingService.createInvoice', () => {
         { description: 'Limpieza', quantity: 1, unitPrice: 333.333 },
         { description: 'Consulta', quantity: 2, unitPrice: 100 },
       ],
-    } as never);
+    });
 
-    const call = prisma.invoice.create.mock.calls[0][0] as {
-      data: { subtotal: number; tax: number; total: number; balanceDue: number };
-    };
+    const call = firstCallArg<{
+      data: {
+        subtotal: number;
+        tax: number;
+        total: number;
+        balanceDue: number;
+      };
+    }>(prisma.invoice.create);
     expect(call.data.subtotal).toBe(533.33);
     expect(call.data.tax).toBe(85.33);
     expect(call.data.total).toBe(618.66);
@@ -148,7 +157,7 @@ describe('BillingService cash sessions', () => {
       service.openSession('user-1', {
         cashRegisterId: 'register-1',
         openingAmount: 500,
-      } as never),
+      }),
     ).rejects.toThrow(ConflictException);
     expect(prisma.cashRegisterSession.create).not.toHaveBeenCalled();
   });
@@ -161,10 +170,14 @@ describe('BillingService cash sessions', () => {
     await service.openSession('user-1', {
       cashRegisterId: 'register-1',
       openingAmount: 500,
-    } as never);
+    });
 
     expect(prisma.cashRegisterSession.create).toHaveBeenCalledWith({
-      data: { cashRegisterId: 'register-1', userId: 'user-1', openingAmount: 500 },
+      data: {
+        cashRegisterId: 'register-1',
+        userId: 'user-1',
+        openingAmount: 500,
+      },
     });
   });
 
@@ -173,7 +186,7 @@ describe('BillingService cash sessions', () => {
     prisma.cashRegisterSession.findUnique.mockResolvedValue(null);
 
     await expect(
-      service.closeSession('session-1', { closingAmount: 500 } as never),
+      service.closeSession('session-1', { closingAmount: 500 }),
     ).rejects.toThrow(NotFoundException);
   });
 
@@ -185,7 +198,7 @@ describe('BillingService cash sessions', () => {
     });
 
     await expect(
-      service.closeSession('session-1', { closingAmount: 500 } as never),
+      service.closeSession('session-1', { closingAmount: 500 }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -202,7 +215,7 @@ describe('BillingService cash sessions', () => {
     prisma.payment.aggregate.mockResolvedValue({ _sum: { amount: 320.5 } });
     prisma.cashRegisterSession.update.mockResolvedValue({});
 
-    await service.closeSession('session-1', { closingAmount: 800 } as never);
+    await service.closeSession('session-1', { closingAmount: 800 });
 
     expect(prisma.payment.aggregate).toHaveBeenCalledWith({
       where: {
@@ -212,14 +225,19 @@ describe('BillingService cash sessions', () => {
       },
       _sum: { amount: true },
     });
-    expect(prisma.cashRegisterSession.update).toHaveBeenCalledWith({
-      where: { id: 'session-1' },
+    const call = firstCallArg<{
+      where: { id: string };
       data: {
-        closedAt: expect.any(Date),
-        closingAmount: 800,
-        expectedAmount: 820.5,
-        difference: -20.5,
-      },
-    });
+        closedAt: Date;
+        closingAmount: number;
+        expectedAmount: number;
+        difference: number;
+      };
+    }>(prisma.cashRegisterSession.update);
+    expect(call.where).toEqual({ id: 'session-1' });
+    expect(call.data.closedAt).toBeInstanceOf(Date);
+    expect(call.data.closingAmount).toBe(800);
+    expect(call.data.expectedAmount).toBe(820.5);
+    expect(call.data.difference).toBe(-20.5);
   });
 });

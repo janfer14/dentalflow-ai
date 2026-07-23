@@ -5,6 +5,10 @@ import {
 } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 
+function firstCallArg<T>(mockFn: { mock: { calls: unknown[][] } }): T {
+  return mockFn.mock.calls[0]?.[0] as T;
+}
+
 function buildService() {
   const prisma = {
     appointment: {
@@ -86,10 +90,10 @@ describe('AppointmentsService.create', () => {
       endsAt: '2026-01-05T11:00:00Z',
     } as never);
 
-    const where = prisma.appointment.findFirst.mock.calls[0][0].where as {
-      status: { notIn: string[] };
-    };
-    expect(where.status.notIn).toEqual(
+    const call = firstCallArg<{ where: { status: { notIn: string[] } } }>(
+      prisma.appointment.findFirst,
+    );
+    expect(call.where.status.notIn).toEqual(
       expect.arrayContaining(['CANCELLED', 'NO_SHOW']),
     );
   });
@@ -100,9 +104,7 @@ describe('AppointmentsService.findOne', () => {
     const { service, prisma } = buildService();
     prisma.appointment.findUnique.mockResolvedValue(null);
 
-    await expect(service.findOne('missing')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(service.findOne('missing')).rejects.toThrow(NotFoundException);
   });
 });
 
@@ -126,7 +128,7 @@ describe('AppointmentsService.update', () => {
     await expect(
       service.update('appt-1', {
         startsAt: '2026-01-05T12:00:00Z',
-      } as never),
+      }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -138,12 +140,12 @@ describe('AppointmentsService.update', () => {
     await service.update('appt-1', {
       startsAt: '2026-01-05T14:00:00Z',
       endsAt: '2026-01-05T15:00:00Z',
-    } as never);
+    });
 
-    const where = prisma.appointment.findFirst.mock.calls[0][0].where as {
-      id: { not: string };
-    };
-    expect(where.id).toEqual({ not: 'appt-1' });
+    const call = firstCallArg<{ where: { id: { not: string } } }>(
+      prisma.appointment.findFirst,
+    );
+    expect(call.where.id).toEqual({ not: 'appt-1' });
   });
 
   it('does not re-check overlap when neither time, doctor, nor room changed', async () => {
@@ -151,7 +153,7 @@ describe('AppointmentsService.update', () => {
     prisma.appointment.findUnique.mockResolvedValue(existingAppointment());
     prisma.appointment.update.mockResolvedValue({ id: 'appt-1' });
 
-    await service.update('appt-1', { notes: 'updated note' } as never);
+    await service.update('appt-1', { notes: 'updated note' });
 
     expect(prisma.appointment.findFirst).not.toHaveBeenCalled();
   });
@@ -186,7 +188,7 @@ describe('AppointmentsService.update', () => {
     await service.update('appt-1', {
       startsAt: '2026-01-06T10:00:00Z',
       endsAt: '2026-01-06T11:00:00Z',
-    } as never);
+    });
 
     expect(whatsAppScheduler.rescheduleForAppointment).toHaveBeenCalledWith(
       'appt-1',

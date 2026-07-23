@@ -12,6 +12,10 @@ jest.mock('otplib', () => ({
   generateURI: jest.fn(),
 }));
 
+function firstCallArg<T>(mockFn: { mock: { calls: unknown[][] } }): T {
+  return mockFn.mock.calls[0]?.[0] as T;
+}
+
 function buildService(user: Record<string, unknown> | null) {
   const prisma = {
     user: {
@@ -117,9 +121,9 @@ describe('AuthService.validateCredentials', () => {
       service.validateCredentials('doctor@dentalflow.ai', 'wrong-password'),
     ).rejects.toThrow(UnauthorizedException);
 
-    const call = prisma.user.update.mock.calls[0][0] as {
+    const call = firstCallArg<{
       data: { failedLoginCount: number; lockedUntil: Date | null };
-    };
+    }>(prisma.user.update);
     expect(call.data.failedLoginCount).toBe(5);
     expect(call.data.lockedUntil).toBeInstanceOf(Date);
     expect(call.data.lockedUntil!.getTime()).toBeGreaterThan(Date.now());
@@ -164,13 +168,13 @@ describe('AuthService.validateCredentials', () => {
     );
 
     expect(result.id).toBe('user-1');
-    expect(prisma.user.update).toHaveBeenCalledWith({
-      where: { id: 'user-1' },
-      data: expect.objectContaining({
-        failedLoginCount: 0,
-        lockedUntil: null,
-      }),
-    });
+    const call = firstCallArg<{
+      where: { id: string };
+      data: { failedLoginCount: number; lockedUntil: Date | null };
+    }>(prisma.user.update);
+    expect(call.where).toEqual({ id: 'user-1' });
+    expect(call.data.failedLoginCount).toBe(0);
+    expect(call.data.lockedUntil).toBeNull();
   });
 });
 
@@ -227,22 +231,21 @@ describe('AuthService.refresh', () => {
 
     const result = await service.refresh('raw-token', '127.0.0.1');
 
-    expect(prisma.refreshToken.update).toHaveBeenCalledWith({
-      where: { id: 'rt-1' },
-      data: { revokedAt: expect.any(Date) },
-    });
-    expect(prisma.refreshToken.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          userId: 'user-1',
-          createdByIp: '127.0.0.1',
-        }),
-      }),
-    );
-    expect(result).toEqual({
-      accessToken: 'signed-access-token',
-      refreshToken: expect.any(String),
-    });
+    const updateCall = firstCallArg<{
+      where: { id: string };
+      data: { revokedAt: Date };
+    }>(prisma.refreshToken.update);
+    expect(updateCall.where).toEqual({ id: 'rt-1' });
+    expect(updateCall.data.revokedAt).toBeInstanceOf(Date);
+
+    const createCall = firstCallArg<{
+      data: { userId: string; createdByIp: string };
+    }>(prisma.refreshToken.create);
+    expect(createCall.data.userId).toBe('user-1');
+    expect(createCall.data.createdByIp).toBe('127.0.0.1');
+
+    expect(result.accessToken).toBe('signed-access-token');
+    expect(typeof result.refreshToken).toBe('string');
   });
 });
 
@@ -252,9 +255,12 @@ describe('AuthService.revokeRefreshToken', () => {
 
     await service.revokeRefreshToken('raw-token');
 
-    expect(prisma.refreshToken.updateMany).toHaveBeenCalledWith({
-      where: { tokenHash: expect.any(String), revokedAt: null },
-      data: { revokedAt: expect.any(Date) },
-    });
+    const call = firstCallArg<{
+      where: { tokenHash: string; revokedAt: null };
+      data: { revokedAt: Date };
+    }>(prisma.refreshToken.updateMany);
+    expect(typeof call.where.tokenHash).toBe('string');
+    expect(call.where.revokedAt).toBeNull();
+    expect(call.data.revokedAt).toBeInstanceOf(Date);
   });
 });
