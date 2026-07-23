@@ -34,7 +34,7 @@ services:
           type: keyvalue
           property: connectionString
       - key: CORS_ORIGIN
-        value: https://dentalflow-frontend.onrender.com
+        value: https://dentalflow-frontend-7eld.onrender.com
       - key: JWT_ACCESS_SECRET
         generateValue: true
       - key: JWT_ACCESS_EXPIRES_IN
@@ -62,16 +62,16 @@ services:
       - key: ANTHROPIC_MODEL
         value: claude-opus-4-8
       - key: GOOGLE_CALLBACK_URL
-        value: https://dentalflow-backend.onrender.com/api/v1/auth/google/callback
+        value: https://dentalflow-backend-vb48.onrender.com/api/v1/auth/google/callback
 
   - name: dentalflow-frontend
     type: web
     runtime: node
     plan: free
-    buildCommand: npm install --include=dev && NEXT_PUBLIC_API_URL=https://dentalflow-backend.onrender.com/api/v1 npm run build:frontend
+    buildCommand: npm install --include=dev && NEXT_PUBLIC_API_URL=https://dentalflow-backend-vb48.onrender.com/api/v1 npm run build:frontend
     startCommand: cd apps/frontend && npm run start
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
-        value: https://dentalflow-backend.onrender.com/api/v1
+        value: https://dentalflow-backend-vb48.onrender.com/api/v1
