@@ -110,5 +110,8 @@ jobs:
         run: npx tsc --noEmit
         working-directory: apps/frontend
 
+      - name: Unit tests
+        run: npm run test -w apps/frontend
+
       - name: Build
         run: npm run build -w apps/frontend
