@@ -17,3 +17,8 @@ apps/backend/prisma/generated/
 .vscode/*
 !.vscode/extensions.json
 *.tsbuildinfo
+
+# jsPDF's doc.save() falls back to writing a real file when run under
+# Node/jsdom (as in the report-export tests), instead of triggering a
+# browser download.
+apps/frontend/reporte.pdf

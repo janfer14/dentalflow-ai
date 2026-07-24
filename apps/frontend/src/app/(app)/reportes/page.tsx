@@ -5,37 +5,81 @@ import {
   CalendarX,
   DollarSign,
   Download,
+  FileSpreadsheet,
+  FileText,
   TrendingDown,
   UserPlus,
   Users,
 } from 'lucide-react';
-import { useReportsOverview } from '@/hooks/use-reports';
+import { useReportsOverview, type ReportsOverview } from '@/hooks/use-reports';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { RevenueChart } from '@/components/reports/revenue-chart';
 import { RankedBarList } from '@/components/reports/ranked-bar-list';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { exportToCsv } from '@/lib/csv-export';
+import { exportToExcel, exportToPdf } from '@/lib/report-export';
 
 function currency(value: number) {
   return value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 }
 
+function doctorRows(data: ReportsOverview) {
+  return data.revenueByDoctor.map((d) => ({
+    Doctor: d.doctorName,
+    Tratamientos: d.count,
+    Produccion: d.total,
+  }));
+}
+
+function treatmentRows(data: ReportsOverview) {
+  return data.topTreatments.map((t) => ({
+    Tratamiento: t.name,
+    Cantidad: t.count,
+    Total: t.total,
+  }));
+}
+
 export default function ReportesPage() {
   const { data, isLoading } = useReportsOverview();
 
-  const handleExport = () => {
+  const handleExportCsv = () => {
     if (!data) return;
-    exportToCsv('produccion-por-doctor.csv', data.revenueByDoctor.map((d) => ({
-      Doctor: d.doctorName,
-      Tratamientos: d.count,
-      Produccion: d.total,
-    })));
-    exportToCsv('tratamientos-mas-vendidos.csv', data.topTreatments.map((t) => ({
-      Tratamiento: t.name,
-      Cantidad: t.count,
-      Total: t.total,
-    })));
+    exportToCsv('produccion-por-doctor.csv', doctorRows(data));
+    exportToCsv('tratamientos-mas-vendidos.csv', treatmentRows(data));
+  };
+
+  const handleExportExcel = () => {
+    if (!data) return;
+    void exportToExcel('reporte-dentalflow.xlsx', [
+      { name: 'Produccion por doctor', rows: doctorRows(data) },
+      { name: 'Tratamientos mas vendidos', rows: treatmentRows(data) },
+    ]);
+  };
+
+  const handleExportPdf = () => {
+    if (!data) return;
+    const rangeLabel = `${new Date(data.range.from).toLocaleDateString('es-MX')} — ${new Date(
+      data.range.to,
+    ).toLocaleDateString('es-MX')}`;
+    exportToPdf('reporte-dentalflow.pdf', 'Reportes ejecutivos — DentalFlow AI', rangeLabel, [
+      {
+        heading: 'Producción por doctor',
+        columns: ['Doctor', 'Tratamientos', 'Producción'],
+        rows: data.revenueByDoctor.map((d) => [d.doctorName, d.count, currency(d.total)]),
+      },
+      {
+        heading: 'Tratamientos más vendidos',
+        columns: ['Tratamiento', 'Cantidad', 'Total'],
+        rows: data.topTreatments.map((t) => [t.name, t.count, currency(t.total)]),
+      },
+    ]);
   };
 
   if (isLoading || !data) {
@@ -62,10 +106,28 @@ export default function ReportesPage() {
             {new Date(data.range.to).toLocaleDateString('es-MX')}
           </p>
         </div>
-        <Button variant="outline" onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
-          Exportar CSV
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Exportar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={handleExportCsv}>
+              <Download className="mr-2 h-4 w-4" />
+              CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportExcel}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Excel
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportPdf}>
+              <FileText className="mr-2 h-4 w-4" />
+              PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
