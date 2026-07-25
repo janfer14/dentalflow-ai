@@ -5,10 +5,13 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { NAV_ITEMS } from './nav-items';
+import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const items = NAV_ITEMS.filter((item) => !item.doctorOnly || user?.isDoctor);
 
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-border/60 bg-sidebar/70 backdrop-blur-2xl">
@@ -23,7 +26,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
           return (
             <Link

@@ -68,6 +68,8 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Agenda** — CRUD de citas con **prevención real de doble reservación** (por doctor y por consultorio, verificado a nivel de base de datos), vista diaria navegable, formulario con búsqueda de pacientes, **selector de sucursal** en la barra superior (multisucursal: Agenda, Inventario y Caja filtran por la clínica activa, persistida en el navegador).
 
+**Portal del doctor** (`/mi-consulta`) — Vista personalizada visible solo para usuarios con `isDoctor=true`: su agenda de hoy y de los próximos 7 días, avance rápido de estado de la cita (registrar llegada → iniciar consulta → completar) y acceso directo al expediente de cada paciente.
+
 **Pacientes** — CRUD completo (backend + UI), búsqueda, ficha con pestañas (resumen, expediente, facturación).
 
 **Expediente clínico** — Odontograma interactivo por pieza dental, notas clínicas, planes de tratamiento con items, recetas.
@@ -106,7 +108,7 @@ Crea credenciales OAuth 2.0 en [console.cloud.google.com](https://console.cloud.
 
 ## Qué falta (roadmap)
 
-Portal del doctor, OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
+OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
 
 Cada uno de estos es un módulo real de trabajo — se recomienda construirlos de forma incremental, uno a la vez, verificando que compile, pase tests y corra en navegador antes de avanzar al siguiente.
 
