@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAdjustStock } from '@/hooks/use-inventory';
-import { useClinics } from '@/hooks/use-directory';
+import { useClinic } from '@/contexts/clinic-context';
 import type { Product, StockMovementType } from '@/types/api';
 
 const MOVEMENT_LABELS: { value: StockMovementType; label: string }[] = [
@@ -41,17 +41,17 @@ export function AdjustStockDialog({
   product: Product;
   onClose: () => void;
 }) {
-  const { data: clinics } = useClinics();
+  const { selectedClinicId } = useClinic();
   const adjustStock = useAdjustStock(product.id);
   const [type, setType] = useState<StockMovementType>('PURCHASE_IN');
   const [quantity, setQuantity] = useState('1');
   const [reason, setReason] = useState('');
 
   const handleSubmit = async () => {
-    if (!clinics?.[0]) return;
+    if (!selectedClinicId) return;
     try {
       await adjustStock.mutateAsync({
-        clinicId: clinics[0].id,
+        clinicId: selectedClinicId,
         type,
         quantity: Number(quantity),
         reason: reason || undefined,

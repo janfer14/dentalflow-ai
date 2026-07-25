@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Package, Plus } from 'lucide-react';
 import { useProducts } from '@/hooks/use-inventory';
+import { useClinic } from '@/contexts/clinic-context';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,8 @@ import { StockLevelBar } from '@/components/inventory/stock-level-bar';
 import type { Product } from '@/types/api';
 
 export default function InventarioPage() {
-  const { data: products, isLoading } = useProducts();
+  const { selectedClinicId } = useClinic();
+  const { data: products, isLoading } = useProducts(selectedClinicId ?? undefined);
   const [createOpen, setCreateOpen] = useState(false);
   const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
 

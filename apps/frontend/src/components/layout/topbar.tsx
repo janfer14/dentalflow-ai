@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
+import { ClinicSelector } from '@/components/layout/clinic-selector';
 
 export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
   const { theme, setTheme } = useTheme();
@@ -34,6 +35,8 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
       </button>
 
       <div className="flex-1" />
+
+      <ClinicSelector />
 
       <Button
         variant="ghost"

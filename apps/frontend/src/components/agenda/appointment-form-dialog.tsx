@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { Loader2 } from 'lucide-react';
@@ -25,6 +25,7 @@ import {
 import { useCreateAppointment } from '@/hooks/use-appointments';
 import { useClinics, useDoctors, useTreatments } from '@/hooks/use-directory';
 import { usePatients } from '@/hooks/use-patients';
+import { useClinic } from '@/contexts/clinic-context';
 
 interface AppointmentFormDialogProps {
   open: boolean;
@@ -47,6 +48,7 @@ export function AppointmentFormDialog({
   const { data: doctors } = useDoctors();
   const { data: treatments } = useTreatments();
   const createAppointment = useCreateAppointment();
+  const { selectedClinicId } = useClinic();
 
   const [patientSearch, setPatientSearch] = useState('');
   const { data: patientResults } = usePatients({ search: patientSearch, pageSize: 8 });
@@ -60,6 +62,17 @@ export function AppointmentFormDialog({
     durationMinutes: 30,
     notes: '',
   });
+
+  useEffect(() => {
+    if (selectedClinicId && !form.clinicId) {
+      // One-time auto-fill from the globally selected clinic once it's
+      // known — only while the field is still untouched, so this never
+      // overrides a clinic the user already picked in the form.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm((prev) => ({ ...prev, clinicId: selectedClinicId }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClinicId]);
 
   const selectedTreatment = useMemo(
     () => treatments?.find((t) => t.id === form.treatmentId),

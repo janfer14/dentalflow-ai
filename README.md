@@ -58,7 +58,7 @@ npm run dev:frontend   # http://localhost:3000
 | Doctor | doctor@dentalflow.ai | DentalFlow123! |
 | Recepción | recepcion@dentalflow.ai | DentalFlow123! |
 
-El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5678`) para probar el Portal del Paciente en `http://localhost:3000/portal/login`.
+El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5678`) para probar el Portal del Paciente en `http://localhost:3000/portal/login`, y dos sucursales (**Sucursal Central**, **Sucursal Norte**) para probar el selector de clínica — el usuario administrador tiene acceso a ambas.
 
 ## Qué está implementado
 
@@ -66,7 +66,7 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Autenticación y seguridad** — JWT con refresh tokens rotativos (hash SHA-256 en base de datos), 2FA por TOTP (otplib + QR), inicio de sesión con **Google OAuth** (degrada a 503 sin romper el arranque si no está configurado), bloqueo de cuenta tras intentos fallidos, RBAC (roles/permisos), Helmet, rate limiting (Throttler), CORS, validación estricta de DTOs (class-validator), Argon2 para contraseñas.
 
-**Agenda** — CRUD de citas con **prevención real de doble reservación** (por doctor y por consultorio, verificado a nivel de base de datos), vista diaria navegable, formulario con búsqueda de pacientes.
+**Agenda** — CRUD de citas con **prevención real de doble reservación** (por doctor y por consultorio, verificado a nivel de base de datos), vista diaria navegable, formulario con búsqueda de pacientes, **selector de sucursal** en la barra superior (multisucursal: Agenda, Inventario y Caja filtran por la clínica activa, persistida en el navegador).
 
 **Pacientes** — CRUD completo (backend + UI), búsqueda, ficha con pestañas (resumen, expediente, facturación).
 
@@ -76,7 +76,7 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Inventario** — Catálogo de insumos, movimientos de entrada/salida, alertas de stock bajo.
 
-**Reportes ejecutivos** — Ingresos por rango de fecha (gráfica de área), ingresos por doctor, tratamientos más solicitados, exportación a CSV.
+**Reportes ejecutivos** — Ingresos por rango de fecha (gráfica de área), ingresos por doctor, tratamientos más solicitados, exportación a **CSV, Excel y PDF**.
 
 **Asistente DentalFlow AI** — Chat con Claude (`@anthropic-ai/sdk`, modelo `claude-opus-4-8`) con herramientas propias ancladas a datos reales (buscar pacientes, buscar tratamientos, resumen clínico de un paciente). Funciona en **modo sandbox** sin `ANTHROPIC_API_KEY` (explica cómo activarlo) y responde de verdad en cuanto se configura la clave.
 
@@ -86,7 +86,7 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Diseño** — Glassmorphism, modo claro/oscuro/automático, sidebar con indicador animado (Framer Motion), búsqueda global tipo Spotlight (⌘K / Ctrl+K), dashboard con KPIs animados, todo verificado visualmente en navegador (Chromium headless) en ambos temas.
 
-**CI** (`.github/workflows/ci.yml`) — En cada push/PR a `main`: backend (lint, typecheck, tests unitarios, tests e2e contra Postgres/Redis reales via GitHub Actions services, build) y frontend (lint, typecheck, build) corren en paralelo.
+**CI** (`.github/workflows/ci.yml`) — En cada push/PR a `master`: backend (lint, typecheck, tests unitarios, tests e2e contra Postgres/Redis reales via GitHub Actions services, build) y frontend (lint, typecheck, tests unitarios con Vitest, build) corren en paralelo.
 
 ### Configurar WhatsApp Cloud API en producción
 
@@ -106,7 +106,7 @@ Crea credenciales OAuth 2.0 en [console.cloud.google.com](https://console.cloud.
 
 ## Qué falta (roadmap)
 
-Portal del doctor, multisucursal completo (selector de clínica), OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, mensajes masivos/promociones/cumpleaños por WhatsApp, sincronización con Google/Outlook/Apple Calendar, exportación a PDF/Excel (hoy solo CSV en Reportes), odontograma 3D interactivo (hoy es 2D por pieza).
+Portal del doctor, OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, mensajes masivos/promociones/cumpleaños por WhatsApp, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
 
 Cada uno de estos es un módulo real de trabajo — se recomienda construirlos de forma incremental, uno a la vez, verificando que compile, pase tests y corra en navegador antes de avanzar al siguiente.
 
@@ -115,6 +115,7 @@ Cada uno de estos es un módulo real de trabajo — se recomienda construirlos d
 ```bash
 npm test -w apps/backend        # unitarios (Jest)
 npm run test:e2e -w apps/backend  # e2e (Jest + Supertest, requiere Postgres/Redis corriendo)
+npm run test -w apps/frontend   # unitarios (Vitest)
 npm run lint -w apps/backend
 npm run lint -w apps/frontend
 ```

@@ -52,6 +52,41 @@ async function main() {
     },
   });
 
+  // Second clinic so the multi-branch clinic selector has something real to
+  // switch between out of the box.
+  const clinicNorte = await prisma.clinic.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000005' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000005',
+      organizationId: organization.id,
+      name: 'Sucursal Norte',
+      address: 'Av. Insurgentes Norte 456, CDMX',
+      city: 'Ciudad de México',
+      state: 'CDMX',
+    },
+  });
+
+  await prisma.consultingRoom.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000006' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000006',
+      clinicId: clinicNorte.id,
+      name: 'Consultorio 1',
+    },
+  });
+
+  await prisma.cashRegister.upsert({
+    where: { id: '00000000-0000-0000-0000-000000000007' },
+    update: {},
+    create: {
+      id: '00000000-0000-0000-0000-000000000007',
+      clinicId: clinicNorte.id,
+      name: 'Caja Recepción',
+    },
+  });
+
   const permissionKeys = [
     'patients.read',
     'patients.write',
@@ -140,6 +175,12 @@ async function main() {
     where: { userId_clinicId: { userId: admin.id, clinicId: clinic.id } },
     update: {},
     create: { userId: admin.id, clinicId: clinic.id },
+  });
+
+  await prisma.userClinic.upsert({
+    where: { userId_clinicId: { userId: admin.id, clinicId: clinicNorte.id } },
+    update: {},
+    create: { userId: admin.id, clinicId: clinicNorte.id },
   });
 
   const doctor = await prisma.user.upsert({
@@ -282,7 +323,7 @@ async function main() {
 
   console.log('Seed completado:');
   console.log(`  Organización: ${organization.name}`);
-  console.log(`  Clínica: ${clinic.name}`);
+  console.log(`  Clínicas: ${clinic.name}, ${clinicNorte.name}`);
   console.log(`  Admin: admin@dentalflow.ai / DentalFlow123!`);
   console.log(`  Doctor: doctor@dentalflow.ai / DentalFlow123!`);
   console.log(`  Recepción: recepcion@dentalflow.ai / DentalFlow123!`);

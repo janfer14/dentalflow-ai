@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useAppointments } from '@/hooks/use-appointments';
 import { useDoctors } from '@/hooks/use-directory';
+import { useClinic } from '@/contexts/clinic-context';
 import { Button } from '@/components/ui/button';
 import { AppointmentFormDialog } from '@/components/agenda/appointment-form-dialog';
 import { AgendaTimeline } from '@/components/agenda/agenda-timeline';
@@ -24,7 +25,9 @@ export default function AgendaPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  const { selectedClinicId } = useClinic();
   const { data: appointments, isLoading } = useAppointments({
+    clinicId: selectedClinicId ?? undefined,
     from: startOfDayISO(selectedDate),
     to: endOfDayISO(selectedDate),
   });

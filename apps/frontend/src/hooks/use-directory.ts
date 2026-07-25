@@ -8,13 +8,14 @@ export interface Clinic {
   consultingRooms: { id: string; name: string }[];
 }
 
-export function useClinics() {
+export function useClinics(enabled = true) {
   return useQuery({
     queryKey: ['clinics'],
     queryFn: async () => {
       const { data } = await apiClient.get<Clinic[]>('/clinics');
       return data;
     },
+    enabled,
   });
 }
 

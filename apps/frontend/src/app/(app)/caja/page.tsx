@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { DollarSign, FileWarning, Receipt, TrendingUp } from 'lucide-react';
 import { useAccountsReceivable, useInvoices } from '@/hooks/use-billing';
-import { useClinics } from '@/hooks/use-directory';
+import { useClinic } from '@/contexts/clinic-context';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { CashRegisterPanel } from '@/components/billing/cash-register-panel';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +37,7 @@ function currency(value: string | number) {
 export default function CajaPage() {
   const { data: invoices, isLoading } = useInvoices();
   const { data: receivable } = useAccountsReceivable();
-  const { data: clinics } = useClinics();
+  const { selectedClinicId } = useClinic();
 
   const stats = useMemo(() => {
     const list = invoices ?? [];
@@ -109,7 +109,7 @@ export default function CajaPage() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          {clinics && clinics[0] && <CashRegisterPanel clinicId={clinics[0].id} />}
+          {selectedClinicId && <CashRegisterPanel clinicId={selectedClinicId} />}
         </motion.div>
       </div>
     </div>
