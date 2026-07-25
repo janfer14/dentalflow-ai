@@ -20,6 +20,8 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user.type';
+import { BroadcastPreviewDto } from './dto/broadcast-preview.dto';
+import { CreateBroadcastDto } from './dto/create-broadcast.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { UpdateTemplateDto } from './dto/update-template.dto';
 import { WhatsAppService } from './whatsapp.service';
@@ -79,6 +81,28 @@ export class WhatsAppController {
     @Body() dto: UpdateTemplateDto,
   ) {
     return this.whatsapp.updateTemplate(user.organizationId, key, dto.body);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('broadcasts/preview')
+  previewBroadcast(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: BroadcastPreviewDto,
+  ) {
+    return this.whatsapp
+      .resolveBroadcastAudience(user.organizationId, query.audience)
+      .then((patients) => ({ audienceCount: patients.length }));
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('broadcasts')
+  createBroadcast(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateBroadcastDto,
+  ) {
+    return this.whatsapp.createBroadcast(user.organizationId, dto);
   }
 
   @ApiBearerAuth()

@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api-client';
 import type { WhatsAppMessage, WhatsAppStatus, WhatsAppTemplate } from '@/types/api';
 
+export type BroadcastAudience = 'ALL' | 'BIRTHDAY_TODAY' | 'BIRTHDAY_WEEK';
+
 export function useWhatsAppStatus() {
   return useQuery({
     queryKey: ['whatsapp-status'],
@@ -46,6 +48,31 @@ export function usePatientMessages(patientId: string | undefined) {
     },
     enabled: Boolean(patientId),
     refetchInterval: 15_000,
+  });
+}
+
+export function useBroadcastPreview(audience: BroadcastAudience) {
+  return useQuery({
+    queryKey: ['whatsapp-broadcast-preview', audience],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ audienceCount: number }>(
+        '/whatsapp/broadcasts/preview',
+        { params: { audience } },
+      );
+      return data;
+    },
+  });
+}
+
+export function useCreateBroadcast() {
+  return useMutation({
+    mutationFn: async (input: { message: string; audience: BroadcastAudience }) => {
+      const { data } = await apiClient.post<{ audienceCount: number }>(
+        '/whatsapp/broadcasts',
+        input,
+      );
+      return data;
+    },
   });
 }
 

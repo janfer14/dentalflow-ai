@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   BadRequestException,
   ForbiddenException,
@@ -5,8 +6,14 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { Queue } from 'bullmq';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  BroadcastAudience,
+  BroadcastJobData,
+  WHATSAPP_BROADCAST_QUEUE,
+} from './whatsapp.types';
 
 interface SendTemplateParams {
   organizationId: string;
@@ -16,6 +23,8 @@ interface SendTemplateParams {
   params: string[];
 }
 
+const BROADCAST_SEND_INTERVAL_MS = 500;
+
 @Injectable()
 export class WhatsAppService {
   private readonly logger = new Logger(WhatsAppService.name);
@@ -23,6 +32,8 @@ export class WhatsAppService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    @InjectQueue(WHATSAPP_BROADCAST_QUEUE)
+    private readonly broadcastQueue: Queue<BroadcastJobData>,
   ) {}
 
   get isConfigured(): boolean {
@@ -64,6 +75,69 @@ export class WhatsAppService {
       update: { body },
       create: { organizationId, key, body },
     });
+  }
+
+  async resolveBroadcastAudience(
+    organizationId: string,
+    audience: BroadcastAudience,
+  ) {
+    const candidates = await this.prisma.patient.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+        isActive: true,
+        whatsappOptIn: true,
+        phone: { not: null },
+        ...(audience === BroadcastAudience.ALL
+          ? {}
+          : { birthDate: { not: null } }),
+      },
+    });
+
+    if (audience === BroadcastAudience.ALL) return candidates;
+
+    const daysAhead = audience === BroadcastAudience.BIRTHDAY_TODAY ? 0 : 6;
+    const isUpcomingBirthday = (birthDate: Date) => {
+      for (let i = 0; i <= daysAhead; i++) {
+        const target = new Date();
+        target.setUTCDate(target.getUTCDate() + i);
+        if (
+          birthDate.getUTCMonth() === target.getUTCMonth() &&
+          birthDate.getUTCDate() === target.getUTCDate()
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    return candidates.filter(
+      (p) => p.birthDate && isUpcomingBirthday(p.birthDate),
+    );
+  }
+
+  async createBroadcast(
+    organizationId: string,
+    dto: { message: string; audience: BroadcastAudience },
+  ) {
+    const patients = await this.resolveBroadcastAudience(
+      organizationId,
+      dto.audience,
+    );
+
+    await this.broadcastQueue.addBulk(
+      patients.map((patient, index) => ({
+        name: 'broadcast',
+        data: { patientId: patient.id, body: dto.message },
+        opts: {
+          delay: index * BROADCAST_SEND_INTERVAL_MS,
+          removeOnComplete: true,
+          removeOnFail: 50,
+        },
+      })),
+    );
+
+    return { audienceCount: patients.length };
   }
 
   async listMessages(patientId: string) {

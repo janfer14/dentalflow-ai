@@ -6,6 +6,7 @@ import { useWhatsAppStatus, useWhatsAppTemplates } from '@/hooks/use-whatsapp';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { TemplateCard } from '@/components/whatsapp/template-card';
+import { BroadcastDialog } from '@/components/whatsapp/broadcast-dialog';
 
 export default function WhatsAppPage() {
   const { data: status, isLoading: isLoadingStatus } = useWhatsAppStatus();
@@ -13,11 +14,14 @@ export default function WhatsAppPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">WhatsApp</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Confirmaciones, recordatorios y mensajería automática vía WhatsApp Cloud API
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">WhatsApp</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Confirmaciones, recordatorios y mensajería automática vía WhatsApp Cloud API
+          </p>
+        </div>
+        <BroadcastDialog />
       </div>
 
       <motion.div

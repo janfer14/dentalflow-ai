@@ -30,3 +30,16 @@ export const TEMPLATE_KEY_BY_KIND: Record<ReminderKind, string> = {
 };
 
 export const WHATSAPP_REMINDERS_QUEUE = 'whatsapp-reminders';
+
+export enum BroadcastAudience {
+  ALL = 'ALL',
+  BIRTHDAY_TODAY = 'BIRTHDAY_TODAY',
+  BIRTHDAY_WEEK = 'BIRTHDAY_WEEK',
+}
+
+export const WHATSAPP_BROADCAST_QUEUE = 'whatsapp-broadcast';
+
+export interface BroadcastJobData {
+  patientId: string;
+  body: string;
+}

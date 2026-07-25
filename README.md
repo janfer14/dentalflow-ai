@@ -80,7 +80,7 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Asistente DentalFlow AI** — Chat con Claude (`@anthropic-ai/sdk`, modelo `claude-opus-4-8`) con herramientas propias ancladas a datos reales (buscar pacientes, buscar tratamientos, resumen clínico de un paciente). Funciona en **modo sandbox** sin `ANTHROPIC_API_KEY` (explica cómo activarlo) y responde de verdad en cuanto se configura la clave.
 
-**WhatsApp Cloud API** — Confirmación automática al agendar, recordatorios programados a 72h/48h/24h/2h antes de la cita (colas BullMQ con delay preciso, no polling), aviso de cancelación y de reagendamiento, webhook de verificación y recepción (firma HMAC opcional vía `WHATSAPP_APP_SECRET`), actualización de estado de mensajes (enviado/entregado/leído/fallido) desde los callbacks de Meta, chat interno por paciente, plantillas editables desde la UI. Funciona en **modo sandbox** sin credenciales (simula el envío y deja todo registrado en base de datos) y pasa a modo real en cuanto se configuran `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_ACCESS_TOKEN`.
+**WhatsApp Cloud API** — Confirmación automática al agendar, recordatorios programados a 72h/48h/24h/2h antes de la cita (colas BullMQ con delay preciso, no polling), aviso de cancelación y de reagendamiento, webhook de verificación y recepción (firma HMAC opcional vía `WHATSAPP_APP_SECRET`), actualización de estado de mensajes (enviado/entregado/leído/fallido) desde los callbacks de Meta, chat interno por paciente, plantillas editables desde la UI, **campañas masivas** (todos los pacientes que aceptan WhatsApp, o cumpleaños de hoy/de la semana — envío escalonado vía cola, respeta `whatsappOptIn` por paciente). Funciona en **modo sandbox** sin credenciales (simula el envío y deja todo registrado en base de datos) y pasa a modo real en cuanto se configuran `WHATSAPP_PHONE_NUMBER_ID` y `WHATSAPP_ACCESS_TOKEN`.
 
 **Portal del Paciente** (`/portal/login`) — Inicio de sesión sin contraseña vía código OTP de 6 dígitos enviado por WhatsApp al número registrado del paciente, con su propio espacio de JWT (`JWT_PATIENT_ACCESS_SECRET`, separado del de personal). Desde el portal el paciente ve sus próximas citas, puede cancelarlas, y consulta sus facturas y saldos.
 
@@ -106,7 +106,7 @@ Crea credenciales OAuth 2.0 en [console.cloud.google.com](https://console.cloud.
 
 ## Qué falta (roadmap)
 
-Portal del doctor, OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, mensajes masivos/promociones/cumpleaños por WhatsApp, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
+Portal del doctor, OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
 
 Cada uno de estos es un módulo real de trabajo — se recomienda construirlos de forma incremental, uno a la vez, verificando que compile, pase tests y corra en navegador antes de avanzar al siguiente.
 
