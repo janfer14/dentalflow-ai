@@ -12,8 +12,8 @@ import { useAuth } from '@/contexts/auth-context';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   oauth_no_account:
-    'No existe una cuenta activa en DentalFlow AI con ese correo de Google. Contacta a tu administrador.',
-  oauth_no_email: 'No se pudo obtener tu correo desde Google.',
+    'No existe una cuenta activa en DentalFlow AI con ese correo. Contacta a tu administrador.',
+  oauth_no_email: 'No se pudo obtener tu correo desde el proveedor de inicio de sesión.',
 };
 
 export default function LoginPage() {
@@ -28,7 +28,7 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const errorCode = params.get('error');
     if (errorCode) {
-      toast.error(OAUTH_ERROR_MESSAGES[errorCode] ?? 'No se pudo iniciar sesión con Google');
+      toast.error(OAUTH_ERROR_MESSAGES[errorCode] ?? 'No se pudo iniciar sesión');
     }
   }, []);
 
@@ -162,6 +162,19 @@ export default function LoginPage() {
             />
           </svg>
           Continuar con Google
+        </a>
+
+        <a
+          href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1'}/auth/microsoft`}
+          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
+        >
+          <svg viewBox="0 0 23 23" className="h-4 w-4">
+            <path fill="#f25022" d="M0 0h11v11H0Z" />
+            <path fill="#00a4ef" d="M12 0h11v11H12Z" />
+            <path fill="#7fba00" d="M0 12h11v11H0Z" />
+            <path fill="#ffb900" d="M12 12h11v11H12Z" />
+          </svg>
+          Continuar con Microsoft
         </a>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">

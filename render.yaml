@@ -52,17 +52,22 @@ services:
       - key: WHATSAPP_API_VERSION
         value: v21.0
       # WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN, WHATSAPP_APP_SECRET,
-      # ANTHROPIC_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET are
-      # intentionally not listed here. Render's Blueprint create flow
-      # requires a value for any env var it lists (even with sync: false),
-      # so leaving them out entirely — rather than blank — is what actually
-      # skips the prompt. The app already treats them as absent via `?? ''`
-      # fallbacks and runs in sandbox mode. Add them later from the Render
-      # dashboard's Environment tab once you have real credentials.
+      # ANTHROPIC_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+      # MICROSOFT_CLIENT_ID, MICROSOFT_CLIENT_SECRET are intentionally not
+      # listed here. Render's Blueprint create flow requires a value for any
+      # env var it lists (even with sync: false), so leaving them out
+      # entirely — rather than blank — is what actually skips the prompt.
+      # The app already treats them as absent via `?? ''` fallbacks and runs
+      # in sandbox mode. Add them later from the Render dashboard's
+      # Environment tab once you have real credentials.
       - key: ANTHROPIC_MODEL
         value: claude-opus-4-8
       - key: GOOGLE_CALLBACK_URL
         value: https://dentalflow-backend-vb48.onrender.com/api/v1/auth/google/callback
+      - key: MICROSOFT_TENANT_ID
+        value: common
+      - key: MICROSOFT_CALLBACK_URL
+        value: https://dentalflow-backend-vb48.onrender.com/api/v1/auth/microsoft/callback
 
   - name: dentalflow-frontend
     type: web

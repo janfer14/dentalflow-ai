@@ -39,5 +39,13 @@ export default () => ({
         process.env.GOOGLE_CALLBACK_URL ??
         'http://localhost:3001/api/v1/auth/google/callback',
     },
+    microsoft: {
+      clientId: process.env.MICROSOFT_CLIENT_ID,
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+      tenant: process.env.MICROSOFT_TENANT_ID,
+      callbackUrl:
+        process.env.MICROSOFT_CALLBACK_URL ??
+        'http://localhost:3001/api/v1/auth/microsoft/callback',
+    },
   },
 });

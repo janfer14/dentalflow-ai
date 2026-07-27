@@ -5,8 +5,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
+import { MicrosoftOAuthGuard } from './guards/microsoft-oauth.guard';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { MicrosoftStrategy } from './strategies/microsoft.strategy';
 
 type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
 
@@ -25,7 +27,14 @@ type JwtExpiresIn = NonNullable<JwtModuleOptions['signOptions']>['expiresIn'];
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, GoogleOAuthGuard],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    GoogleStrategy,
+    GoogleOAuthGuard,
+    MicrosoftStrategy,
+    MicrosoftOAuthGuard,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

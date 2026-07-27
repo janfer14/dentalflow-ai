@@ -19,6 +19,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { MicrosoftOAuthGuard } from './guards/microsoft-oauth.guard';
 import type { AuthenticatedUser } from './types/authenticated-user.type';
 
 @ApiTags('auth')
@@ -90,6 +91,26 @@ export class AuthController {
   @UseGuards(GoogleOAuthGuard)
   @ApiExcludeEndpoint()
   async googleCallback(@Req() req: Request, @Res() res: Response) {
+    await this.handleOAuthCallback(req, res);
+  }
+
+  @Public()
+  @Get('microsoft')
+  @UseGuards(MicrosoftOAuthGuard)
+  @ApiExcludeEndpoint()
+  microsoftLogin() {
+    // Passport redirects to Microsoft; handler body never runs.
+  }
+
+  @Public()
+  @Get('microsoft/callback')
+  @UseGuards(MicrosoftOAuthGuard)
+  @ApiExcludeEndpoint()
+  async microsoftCallback(@Req() req: Request, @Res() res: Response) {
+    await this.handleOAuthCallback(req, res);
+  }
+
+  private async handleOAuthCallback(req: Request, res: Response) {
     const profile = req.user as { email?: string };
     const frontendUrl = this.config.get<string>('corsOrigin');
 

@@ -64,7 +64,7 @@ El seed también crea una paciente de prueba (**Mariana López**, `+52 55 1234 5
 
 **Arquitectura de base de datos** — Esquema Prisma multi-tenant (organizaciones/clínicas/consultorios), usuarios/roles/permisos, pacientes, expediente clínico (odontograma, notas, planes de tratamiento, recetas), agenda, facturación, inventario, mensajería WhatsApp, conversaciones de IA — diseñado para escalar hacia los 100+ modelos de la especificación completa sin romper compatibilidad.
 
-**Autenticación y seguridad** — JWT con refresh tokens rotativos (hash SHA-256 en base de datos), 2FA por TOTP (otplib + QR), inicio de sesión con **Google OAuth** (degrada a 503 sin romper el arranque si no está configurado), bloqueo de cuenta tras intentos fallidos, RBAC (roles/permisos), Helmet, rate limiting (Throttler), CORS, validación estricta de DTOs (class-validator), Argon2 para contraseñas.
+**Autenticación y seguridad** — JWT con refresh tokens rotativos (hash SHA-256 en base de datos), 2FA por TOTP (otplib + QR), inicio de sesión con **Google OAuth** y **Microsoft OAuth** (ambos degradan a 503 sin romper el arranque si no están configurados), bloqueo de cuenta tras intentos fallidos, RBAC (roles/permisos), Helmet, rate limiting (Throttler), CORS, validación estricta de DTOs (class-validator), Argon2 para contraseñas.
 
 **Agenda** — CRUD de citas con **prevención real de doble reservación** (por doctor y por consultorio, verificado a nivel de base de datos), vista diaria navegable, formulario con búsqueda de pacientes, **selector de sucursal** en la barra superior (multisucursal: Agenda, Inventario y Caja filtran por la clínica activa, persistida en el navegador).
 
@@ -106,9 +106,17 @@ Rellena `ANTHROPIC_API_KEY` en `apps/backend/.env` con una clave de [console.ant
 
 Crea credenciales OAuth 2.0 en [console.cloud.google.com](https://console.cloud.google.com) (APIs y servicios > Credenciales) y rellena `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` en `apps/backend/.env`. El redirect URI autorizado debe ser `GOOGLE_CALLBACK_URL` (por defecto `http://localhost:3001/api/v1/auth/google/callback`).
 
+### Configurar Microsoft OAuth en producción
+
+1. Registra una app en [Azure Portal](https://portal.azure.com) → Microsoft Entra ID → App registrations → New registration.
+2. En "Redirect URI" (tipo Web) agrega `MICROSOFT_CALLBACK_URL` (por defecto `http://localhost:3001/api/v1/auth/microsoft/callback`).
+3. En Certificates & secrets, crea un **Client secret**.
+4. Rellena en `apps/backend/.env`: `MICROSOFT_CLIENT_ID` (Application ID), `MICROSOFT_CLIENT_SECRET` (el valor del secret), y opcionalmente `MICROSOFT_TENANT_ID` (por defecto `common`, acepta cualquier cuenta Microsoft; usa el Tenant ID de tu organización si quieres restringirlo a tu propio Microsoft 365).
+5. En "API permissions" agrega el permiso delegado `User.Read` de Microsoft Graph (suele venir por defecto).
+
 ## Qué falta (roadmap)
 
-OAuth con Microsoft, almacenamiento S3 real para documentos/consentimientos, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
+Almacenamiento S3 real para documentos/consentimientos, sincronización con Google/Outlook/Apple Calendar, odontograma 3D interactivo (hoy es 2D por pieza).
 
 Cada uno de estos es un módulo real de trabajo — se recomienda construirlos de forma incremental, uno a la vez, verificando que compile, pase tests y corra en navegador antes de avanzar al siguiente.
 
