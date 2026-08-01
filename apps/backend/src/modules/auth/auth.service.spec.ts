@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 
 jest.mock('argon2', () => ({
   verify: jest.fn(),
+  hash: jest.fn(),
 }));
 jest.mock('otplib', () => ({
   verify: jest.fn(),
@@ -262,5 +263,75 @@ describe('AuthService.revokeRefreshToken', () => {
     expect(typeof call.where.tokenHash).toBe('string');
     expect(call.where.revokedAt).toBeNull();
     expect(call.data.revokedAt).toBeInstanceOf(Date);
+  });
+});
+
+describe('AuthService.updateProfile', () => {
+  it('updates only the provided fields for the given user', async () => {
+    const { service, prisma } = buildService(null);
+
+    await service.updateProfile('user-1', { firstName: 'Nuevo' });
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { firstName: 'Nuevo' },
+      select: { id: true, firstName: true, lastName: true, phone: true },
+    });
+  });
+});
+
+describe('AuthService.changePassword', () => {
+  it('rehashes and saves the new password when the current one is valid', async () => {
+    const { service, prisma } = buildService(null);
+    prisma.user.findUniqueOrThrow.mockResolvedValue(buildUser());
+    (argon2.verify as jest.Mock).mockResolvedValue(true);
+    (argon2.hash as jest.Mock).mockResolvedValue('new-hash');
+
+    await service.changePassword('user-1', 'old-pass', 'new-pass');
+
+    expect(argon2.hash).toHaveBeenCalledWith('new-pass');
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { passwordHash: 'new-hash' },
+    });
+  });
+
+  it('rejects when the current password is wrong', async () => {
+    const { service, prisma } = buildService(null);
+    prisma.user.findUniqueOrThrow.mockResolvedValue(buildUser());
+    (argon2.verify as jest.Mock).mockResolvedValue(false);
+
+    await expect(
+      service.changePassword('user-1', 'wrong', 'new-pass'),
+    ).rejects.toThrow(UnauthorizedException);
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('AuthService.disableTwoFactor', () => {
+  it('clears the 2FA fields when the current password is valid', async () => {
+    const { service, prisma } = buildService(null);
+    prisma.user.findUniqueOrThrow.mockResolvedValue(
+      buildUser({ twoFactorEnabled: true, twoFactorSecret: 'SECRET' }),
+    );
+    (argon2.verify as jest.Mock).mockResolvedValue(true);
+
+    await service.disableTwoFactor('user-1', 'correct-pass');
+
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { twoFactorEnabled: false, twoFactorSecret: null },
+    });
+  });
+
+  it('rejects when the current password is wrong', async () => {
+    const { service, prisma } = buildService(null);
+    prisma.user.findUniqueOrThrow.mockResolvedValue(buildUser());
+    (argon2.verify as jest.Mock).mockResolvedValue(false);
+
+    await expect(service.disableTwoFactor('user-1', 'wrong')).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(prisma.user.update).not.toHaveBeenCalled();
   });
 });

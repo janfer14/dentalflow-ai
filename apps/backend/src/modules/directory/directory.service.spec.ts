@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { DirectoryService } from './directory.service';
 
 function firstCallArg<T>(mockFn: { mock: { calls: unknown[][] } }): T {
@@ -6,7 +7,11 @@ function firstCallArg<T>(mockFn: { mock: { calls: unknown[][] } }): T {
 
 function buildService() {
   const prisma = {
-    clinic: { findMany: jest.fn().mockResolvedValue([]) },
+    clinic: {
+      findMany: jest.fn().mockResolvedValue([]),
+      findFirst: jest.fn().mockResolvedValue(null),
+      update: jest.fn().mockResolvedValue({}),
+    },
     user: { findMany: jest.fn().mockResolvedValue([]) },
     treatment: { findMany: jest.fn().mockResolvedValue([]) },
   };
@@ -59,5 +64,37 @@ describe('DirectoryService tenant scoping', () => {
     }>(prisma.treatment.findMany);
     expect(call.where.organizationId).toBe('org-1');
     expect(call.where.isActive).toBe(true);
+  });
+
+  it('updateClinic scopes the existence check by organizationId before writing', async () => {
+    const { service, prisma } = buildService();
+    prisma.clinic.findFirst.mockResolvedValue({
+      id: 'clinic-1',
+    });
+
+    await service.updateClinic('org-1', 'clinic-1', { name: 'Nueva' });
+
+    const findCall = firstCallArg<{
+      where: { id: string; organizationId: string; deletedAt: null };
+    }>(prisma.clinic.findFirst);
+    expect(findCall.where).toEqual({
+      id: 'clinic-1',
+      organizationId: 'org-1',
+      deletedAt: null,
+    });
+    expect(prisma.clinic.update).toHaveBeenCalledWith({
+      where: { id: 'clinic-1' },
+      data: { name: 'Nueva' },
+    });
+  });
+
+  it('updateClinic rejects a clinic that belongs to another organization', async () => {
+    const { service, prisma } = buildService();
+    prisma.clinic.findFirst.mockResolvedValue(null);
+
+    await expect(
+      service.updateClinic('org-1', 'clinic-2', { name: 'X' }),
+    ).rejects.toThrow(NotFoundException);
+    expect(prisma.clinic.update).not.toHaveBeenCalled();
   });
 });

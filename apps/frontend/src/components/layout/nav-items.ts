@@ -33,5 +33,5 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
   { label: 'Asistente IA', href: '/asistente', icon: Sparkles },
   { label: 'Reportes', href: '/reportes', icon: BarChart3 },
-  { label: 'Configuración', href: '/configuracion', icon: Settings, badge: 'Pronto' },
+  { label: 'Configuración', href: '/configuracion', icon: Settings },
 ];

@@ -2,6 +2,9 @@ export default () => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: parseInt(process.env.PORT ?? '3001', 10),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+  backendPublicUrl:
+    process.env.BACKEND_PUBLIC_URL ??
+    `http://localhost:${process.env.PORT ?? '3001'}`,
   database: {
     url: process.env.DATABASE_URL,
   },
@@ -47,5 +50,12 @@ export default () => ({
         process.env.MICROSOFT_CALLBACK_URL ??
         'http://localhost:3001/api/v1/auth/microsoft/callback',
     },
+  },
+  s3: {
+    endpoint: process.env.S3_ENDPOINT,
+    bucket: process.env.S3_BUCKET,
+    accessKey: process.env.S3_ACCESS_KEY,
+    secretKey: process.env.S3_SECRET_KEY,
+    region: process.env.S3_REGION ?? 'us-east-1',
   },
 });

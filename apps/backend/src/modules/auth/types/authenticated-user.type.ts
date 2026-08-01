@@ -6,4 +6,5 @@ export interface AuthenticatedUser {
   lastName: string;
   roles: string[];
   isDoctor: boolean;
+  twoFactorEnabled: boolean;
 }

@@ -14,6 +14,7 @@ coverage/
 .turbo/
 apps/backend/generated/
 apps/backend/prisma/generated/
+apps/backend/uploads/
 .vscode/*
 !.vscode/extensions.json
 *.tsbuildinfo

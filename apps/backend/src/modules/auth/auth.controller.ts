@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -14,9 +15,14 @@ import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AiService } from '../ai/ai.service';
+import { WhatsAppService } from '../whatsapp/whatsapp.service';
 import { AuthService } from './auth.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { DisableTwoFactorDto } from './dto/disable-two-factor.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { MicrosoftOAuthGuard } from './guards/microsoft-oauth.guard';
@@ -28,6 +34,8 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly whatsAppService: WhatsAppService,
+    private readonly aiService: AiService,
   ) {}
 
   @Public()
@@ -63,6 +71,46 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('me')
+  updateMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.authService.changePassword(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('integrations-status')
+  integrationsStatus() {
+    return {
+      whatsapp: this.whatsAppService.getStatus(),
+      ai: this.aiService.getStatus(),
+      google: {
+        configured: Boolean(this.config.get<string>('oauth.google.clientId')),
+      },
+      microsoft: {
+        configured: Boolean(
+          this.config.get<string>('oauth.microsoft.clientId'),
+        ),
+      },
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('2fa/generate')
   async generateTwoFactor(@CurrentUser() user: AuthenticatedUser) {
     return this.authService.generateTwoFactorSecret(user.id, user.email);
@@ -76,6 +124,16 @@ export class AuthController {
     @Body('code') code: string,
   ) {
     await this.authService.enableTwoFactor(user.id, code);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('2fa/disable')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async disableTwoFactor(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: DisableTwoFactorDto,
+  ) {
+    await this.authService.disableTwoFactor(user.id, dto.currentPassword);
   }
 
   @Public()

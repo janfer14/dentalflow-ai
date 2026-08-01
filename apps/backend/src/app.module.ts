@@ -20,6 +20,8 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AiModule } from './modules/ai/ai.module';
 import { PatientPortalModule } from './modules/patient-portal/patient-portal.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
@@ -58,6 +60,8 @@ import { PatientPortalModule } from './modules/patient-portal/patient-portal.mod
     ReportsModule,
     AiModule,
     PatientPortalModule,
+    DocumentsModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [

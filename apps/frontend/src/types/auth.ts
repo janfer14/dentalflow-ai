@@ -6,6 +6,7 @@ export interface AuthenticatedUser {
   lastName: string;
   isDoctor: boolean;
   roles: string[];
+  twoFactorEnabled: boolean;
 }
 
 export interface AuthTokens {

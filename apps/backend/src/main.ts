@@ -4,9 +4,11 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { LOCAL_UPLOADS_DIR } from './modules/storage/storage.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
@@ -31,6 +33,16 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   app.setGlobalPrefix('api/v1', { exclude: ['health'] });
+
+  // Local-disk fallback for uploaded files when S3 isn't configured (see
+  // StorageService) — served cross-origin so the frontend can render them
+  // directly, since helmet's default same-origin CORP would otherwise block
+  // <img>/<a> loads from a different port/domain.
+  app.use('/uploads', (_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  });
+  app.use('/uploads', express.static(LOCAL_UPLOADS_DIR));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('DentalFlow AI Enterprise API')

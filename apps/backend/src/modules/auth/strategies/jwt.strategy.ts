@@ -40,6 +40,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       lastName: user.lastName,
       isDoctor: user.isDoctor,
       roles: user.roles.map((r) => r.role.name),
+      twoFactorEnabled: user.twoFactorEnabled,
     };
   }
 }

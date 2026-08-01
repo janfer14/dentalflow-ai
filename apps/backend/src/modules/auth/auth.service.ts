@@ -92,6 +92,7 @@ export class AuthService {
       lastName: user.lastName,
       isDoctor: user.isDoctor,
       roles: user.roles.map((r) => r.role.name),
+      twoFactorEnabled: user.twoFactorEnabled,
     };
   }
 
@@ -196,6 +197,50 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { twoFactorEnabled: true },
+    });
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { firstName?: string; lastName?: string; phone?: string },
+  ) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, firstName: true, lastName: true, phone: true },
+    });
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const valid = await argon2.verify(user.passwordHash, currentPassword);
+    if (!valid) {
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
+    const passwordHash = (await argon2.hash(newPassword)) as string;
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+  }
+
+  async disableTwoFactor(userId: string, currentPassword: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const valid = await argon2.verify(user.passwordHash, currentPassword);
+    if (!valid) {
+      throw new UnauthorizedException('Contraseña actual incorrecta');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: false, twoFactorSecret: null },
     });
   }
 

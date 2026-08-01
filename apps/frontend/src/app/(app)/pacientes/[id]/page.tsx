@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PatientWhatsAppPanel } from '@/components/patients/patient-whatsapp-panel';
+import { PatientDocumentsPanel } from '@/components/patients/patient-documents-panel';
 import { ClinicalRecordPanel } from '@/components/clinical/clinical-record-panel';
 import { PatientInvoicesPanel } from '@/components/billing/patient-invoices-panel';
 
@@ -126,6 +127,7 @@ export default function PatientDetailPage({
         <TabsList>
           <TabsTrigger value="resumen">Resumen</TabsTrigger>
           <TabsTrigger value="expediente">Expediente clínico</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos</TabsTrigger>
           <TabsTrigger value="facturacion">Facturación</TabsTrigger>
         </TabsList>
 
@@ -178,6 +180,10 @@ export default function PatientDetailPage({
 
         <TabsContent value="expediente" className="mt-4">
           <ClinicalRecordPanel patientId={patient.id} />
+        </TabsContent>
+
+        <TabsContent value="documentos" className="mt-4">
+          <PatientDocumentsPanel patientId={patient.id} />
         </TabsContent>
 
         <TabsContent value="facturacion" className="mt-4">
