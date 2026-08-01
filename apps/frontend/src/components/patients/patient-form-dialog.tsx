@@ -70,7 +70,7 @@ export function PatientFormDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="firstName">Nombre</Label>
               <Input id="firstName" required value={form.firstName} onChange={handleChange('firstName')} />

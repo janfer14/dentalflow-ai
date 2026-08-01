@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/auth-context';
 import { ClinicSelector } from '@/components/layout/clinic-selector';
+import { MobileNav } from '@/components/layout/mobile-nav';
 
 export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
   const { theme, setTheme } = useTheme();
@@ -23,9 +24,21 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl lg:px-6">
+      <div className="lg:hidden">
+        <MobileNav />
+      </div>
+
       <button
         onClick={onOpenSearch}
-        className="flex flex-1 max-w-md items-center gap-2 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary"
+        aria-label="Buscar pacientes, citas..."
+        className="flex items-center justify-center rounded-xl border border-border/70 bg-secondary/60 p-2 text-muted-foreground transition-colors hover:bg-secondary sm:hidden"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+
+      <button
+        onClick={onOpenSearch}
+        className="hidden flex-1 max-w-md items-center gap-2 rounded-xl border border-border/70 bg-secondary/60 px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary sm:flex"
       >
         <Search className="h-4 w-4" />
         <span>Buscar pacientes, citas...</span>
@@ -36,7 +49,9 @@ export function Topbar({ onOpenSearch }: { onOpenSearch: () => void }) {
 
       <div className="flex-1" />
 
-      <ClinicSelector />
+      <div className="hidden lg:flex">
+        <ClinicSelector />
+      </div>
 
       <Button
         variant="ghost"
