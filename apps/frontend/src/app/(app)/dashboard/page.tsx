@@ -9,17 +9,24 @@ import {
   Clock,
   DollarSign,
   Sparkles,
+  TrendingUp,
   Users,
 } from 'lucide-react';
 import { useAppointments } from '@/hooks/use-appointments';
 import { usePatients } from '@/hooks/use-patients';
+import { useReportsOverview } from '@/hooks/use-reports';
 import { useAuth } from '@/contexts/auth-context';
 import { KpiCard } from '@/components/dashboard/kpi-card';
+import { RankedBarList } from '@/components/reports/ranked-bar-list';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { AppointmentStatus } from '@/types/api';
+
+function currency(value: number) {
+  return value.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+}
 
 const STATUS_LABEL: Record<AppointmentStatus, string> = {
   SCHEDULED: 'Programada',
@@ -55,6 +62,15 @@ function endOfDayISO(date: Date) {
   return d.toISOString();
 }
 
+function startOfWeekISO(date: Date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = domingo, 1 = lunes, ...
+  const diffToMonday = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diffToMonday);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const today = useMemo(() => new Date(), []);
@@ -65,6 +81,11 @@ export default function DashboardPage() {
   });
 
   const { data: patientsPage } = usePatients({ page: 1, pageSize: 1 });
+
+  const { data: weekOverview, isLoading: isLoadingWeek } = useReportsOverview({
+    from: startOfWeekISO(today),
+    to: today.toISOString(),
+  });
 
   const stats = useMemo(() => {
     const list = todaysAppointments ?? [];
@@ -231,6 +252,42 @@ export default function DashboardPage() {
           </div>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="glass-panel elevated rounded-2xl p-5"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold">
+            <TrendingUp className="h-4 w-4" />
+            Producción por doctor esta semana
+          </h2>
+          <Badge variant="secondary">
+            Total: {currency(weekOverview?.kpis.totalRevenue ?? 0)}
+          </Badge>
+        </div>
+
+        {isLoadingWeek ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-8 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : (
+          <RankedBarList
+            emptyLabel="Todavía no hay tratamientos completados esta semana."
+            items={(weekOverview?.revenueByDoctor ?? []).map((doctor) => ({
+              id: doctor.doctorId,
+              label: doctor.doctorName,
+              sublabel: `${doctor.count} tratamiento${doctor.count === 1 ? '' : 's'}`,
+              value: doctor.total,
+              valueLabel: currency(doctor.total),
+            }))}
+          />
+        )}
+      </motion.div>
     </div>
   );
 }

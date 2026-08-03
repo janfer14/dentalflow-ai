@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClinicProfilePanel } from '@/components/settings/clinic-profile-panel';
 import { TeamMembersPanel } from '@/components/settings/team-members-panel';
+import { TreatmentsPanel } from '@/components/settings/treatments-panel';
 import { MyAccountPanel } from '@/components/settings/my-account-panel';
 import { IntegrationsPanel } from '@/components/settings/integrations-panel';
 
@@ -26,6 +27,7 @@ export default function ConfiguracionPage() {
         <TabsList>
           {isAdmin && <TabsTrigger value="clinica">Perfil de la clínica</TabsTrigger>}
           {isAdmin && <TabsTrigger value="usuarios">Usuarios y roles</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="tratamientos">Tratamientos</TabsTrigger>}
           <TabsTrigger value="cuenta">Mi cuenta</TabsTrigger>
           <TabsTrigger value="integraciones">Integraciones</TabsTrigger>
         </TabsList>
@@ -39,6 +41,12 @@ export default function ConfiguracionPage() {
         {isAdmin && (
           <TabsContent value="usuarios" className="mt-4">
             <TeamMembersPanel />
+          </TabsContent>
+        )}
+
+        {isAdmin && (
+          <TabsContent value="tratamientos" className="mt-4">
+            <TreatmentsPanel />
           </TabsContent>
         )}
 

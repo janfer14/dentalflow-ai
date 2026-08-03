@@ -22,6 +22,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { PatientPortalModule } from './modules/patient-portal/patient-portal.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { UsersModule } from './modules/users/users.module';
+import { TreatmentsModule } from './modules/treatments/treatments.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { UsersModule } from './modules/users/users.module';
     PatientPortalModule,
     DocumentsModule,
     UsersModule,
+    TreatmentsModule,
   ],
   controllers: [AppController],
   providers: [
